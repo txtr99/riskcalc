@@ -14,9 +14,8 @@ Follow these steps to clone the repository, setup a virtual environment, install
 
     In your terminal, navigate to the folder where you want to store the project and run the following command:
     ```bash
-    git clone https://github.com/<your_username>/trading-risk-calculator.git
+    git clone https://github.com/txtr99/riskcalc
     ```
-    Replace `<your_username>` with your actual GitHub username.
 
 2. **Navigate to the project folder**:
     ```bash
