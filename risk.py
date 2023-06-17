@@ -15,6 +15,7 @@ def main():
     risk_percent = float(
         input(colored('Enter % of balance to RISK for the trade (default 0.5%): ', 'cyan')) or 0.5
     )
+    fee_percent = 0.03  # fee percent on each end (entry and exit)
 
     # Let's check how many TP targets the user wants
     num_tp_targets = int(input(colored('Enter number of TP targets (1-3): ', 'cyan')))
@@ -49,10 +50,19 @@ def main():
 
     # Now let's calculate the maximum gain if all TP's are hit and the corresponding R values.
     max_gain_dollars = 0
+    expected_pnls = []
     r_values = []
     for i in range(num_tp_targets):
-        max_gain_dollars += position_size * (tp_prices[i] - entry_price) * (tp_percents[i]/100)
-        r_values.append((tp_prices[i] - entry_price) / r)
+        pnl = position_size * (tp_prices[i] - entry_price) * (tp_percents[i] / 100)
+        # Subtract the fees
+        pnl = pnl * (1 - fee_percent / 100) ** 2
+        max_gain_dollars += pnl
+        expected_pnls.append(pnl)
+        r_values.append(abs((tp_prices[i] - entry_price) / r))
+
+    # If the trade direction is short, we should invert the gain.
+    if direction.lower() == "short":
+        max_gain_dollars *= -1
 
     # Time to print out all the results!
     print(colored('\nMaximum Loss in $: ', 'green'), max_loss_dollars, " and ", (max_loss_dollars / account_balance * 100), "% of account")
@@ -60,6 +70,7 @@ def main():
     print(colored('Maximum Gain in $ if all TP\'s are hit: ', 'green'), max_gain_dollars)
     for i in range(num_tp_targets):
         print(colored(f'TP{i+1} R value (times risk profit): ', 'green'), r_values[i])
+        print(colored(f'Expected PNL for TP{i+1}: ', 'green'), expected_pnls[i])
 
 
 # Call the main function
