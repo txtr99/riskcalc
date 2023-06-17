@@ -18,7 +18,9 @@ def main():
     fee_percent = 0.03  # fee percent on each end (entry and exit)
 
     # Let's check how many TP targets the user wants
-    num_tp_targets = input(colored('Enter number of TP targets (1-3) (default 1): ', 'cyan')) or 1
+    num_tp_targets = input(colored('Enter number of TP targets (1-3) (default 1): ', 'cyan'))
+    # deal with '' and None inputs, and convert to int
+    num_tp_targets = int(num_tp_targets) if num_tp_targets else 1
 
     # Initialize the TP prices and percentages
     tp_prices = []
@@ -26,14 +28,20 @@ def main():
 
     # Ask the user for each TP target's price and percent
     for i in range(num_tp_targets):
-        tp_r = float(input(colored(f'Enter TP{i+1} R (default {i+1}R): ', 'cyan')) or i+1)
-        tp_percent = float(
-            input(colored(f'Enter TP{i+1} % of position (default {100 if num_tp_targets==1 else 50 if i==0 else 25}%): ', 'cyan')) or (50 if i==0 else 25)
-        )
+        tp_r = float(input(colored(f'Enter TP{i+1} R (default {i+1}R): ', 'cyan')) or (i+1))
+
+        if num_tp_targets == 1:
+            tp_percent = float(input(colored(f'Enter TP{i+1} % of position (default 100%): ', 'cyan')) or 100)
+        elif num_tp_targets == 2:
+            tp_percent = float(input(colored(f'Enter TP{i+1} % of position (default {50 if i==0 else 50}%): ', 'cyan')) or (50 if i==0 else 50))
+        else:
+            tp_percent = float(input(colored(f'Enter TP{i+1} % of position (default {50 if i==0 else 25}%): ', 'cyan')) or (50 if i==0 else 25))
+
         # Calculate the actual TP price
         tp_price = entry_price + tp_r * abs(entry_price - stoploss_price) * (1 if direction.lower() == "long" else -1)
-        tp_prices.append(tp_price)
-        tp_percents.append(tp_percent)
+        tp_prices.append(round(tp_price, 2))
+        tp_percents.append(round(tp_percent, 0))
+
 
     # Alright, time for some math. Let's first calculate the risk in dollars.
     risk_in_dollars = account_balance * risk_percent / 100
@@ -60,7 +68,7 @@ def main():
         pnl = pnl if direction.lower() == "long" else -pnl
         # Subtract the fees
         pnl = pnl * (1 - fee_percent / 100) ** 2
-        expected_pnls.append(pnl)
+        expected_pnls.append(round(pnl, 2))
         max_gain_dollars += pnl
         if direction.lower() == "short":
             r_values.append((entry_price - tp_prices[i]) / r)
@@ -68,9 +76,10 @@ def main():
             r_values.append((tp_prices[i] - entry_price) / r)
 
     # Time to print out all the results!
-    print(colored('\nMaximum Loss in $: ', 'green'), max_loss_dollars, " and ", (max_loss_dollars / account_balance * 100), "% of account")
-    print(colored('Max Position Size allowed: ', 'green'), max_position_size)
-    print(colored('Maximum Gain in $ if all TP\'s are hit: ', 'green'), max_gain_dollars)
+    print(colored('\nDirection: ', 'green' if direction.lower() == 'long' else 'red'), direction.lower())
+    print(colored('Maximum Loss in $: ', 'green'), max_loss_dollars, " and ", (max_loss_dollars / account_balance * 100), "% of account")
+    print(colored('Max Position Size allowed: ', 'green'), round(max_position_size, 3))
+    print(colored('Maximum Gain in $ if all TP\'s are hit: ', 'green'), round(max_gain_dollars, 2))
     for i in range(num_tp_targets):
         print(colored(f'TP{i+1} Price: ', 'green'), tp_prices[i])
         print(colored(f'TP{i+1} R value (times risk profit): ', 'green'), r_values[i])
