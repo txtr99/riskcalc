@@ -19,7 +19,7 @@ Follow these steps to clone the repository, setup a virtual environment, install
 
 2. **Navigate to the project folder**:
     ```bash
-    cd trading-risk-calculator
+    cd riskcalc
     ```
 
 3. **Create a virtual environment**:
